@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+
+<head>
+  <title>Line Charts</title>
+  <meta charset="utf-8">
+  <script type="text/javascript" src="../lib/d3.v5.min.js"></script>
+
+</head>
+<body>
+
+<script>
+// Define margins 
+var margin = {top: 20, right: 20, bottom: 30, left: 50};
+
+// width and height of the chart area
+var width = 640 - margin.left - margin.right;
+var height = 400 - margin.top - margin.bottom;
+
+// Converting date strings to JavaScript Date objects
+var time_parse = d3.timeParse("%Y-%m-%d");
+
+// Define x-scale y-scale
+var x = d3.scaleTime().range([0, width]);
+var y = d3.scaleLinear().range([height, 0]);
+
+// set color
+var colors = d3.scaleOrdinal(d3.schemeCategory10);
+
+// Define line generators for each game
+// define the Catan line
+var CatanLine = d3.line()
+      .x(function(d) { return x(d.date); })
+      .y(function(d) { return y(d['Catan=count']); });
+  
+  var CatanLine_1 = d3.line()
+      .x(function(d) { return x(d.date); })
+      .y(function(d) { return yscale_squareroot(d['Catan=count']); });
+
+  var CatanLine_2 = d3.line()
+      .x(function(d) { return x(d.date); })
+      .y(function(d) { return y_log(d['Catan=count']); });
+
+  // define the Dominion line
+  var DominionLine = d3.line()
+      .x(function(d) { return x(d.date); })
+      .y(function(d) { return y(d['Dominion=count']); });
+  
+  var DominionLine_1 = d3.line()
+      .x(function(d) { return x(d.date); })
+      .y(function(d) { return yscale_squareroot(d['Dominion=count']); });
+
+  var DominionLine_2 = d3.line()
+      .x(function(d) { return x(d.date); })
+      .y(function(d) { return y_log(d['Dominion=count']); });
+
+  // define the Codenames line
+  var CodenamesLine = d3.line()
+      .x(function(d) { return x(d.date); })
+      .y(function(d) { return y(d['Codenames=count']); });
+  
+  var CodenamesLine_1 = d3.line()
+      .x(function(d) { return x(d.date); })
+      .y(function(d) { return yscale_squareroot(d['Codenames=count']); });
+
+  var CodenamesLine_2 = d3.line()
+      .x(function(d) { return x(d.date); })
+      .y(function(d) { return y_log(d['Codenames=count']); });
+
+  // define the Terraforming line
+  var TerraformingLine = d3.line()
+      .x(function(d) { return x(d.date); })
+      .y(function(d) { return y(d['Terraforming Mars=count']); });
+  
+  var TerraformingLine_1 = d3.line()
+      .x(function(d) { return x(d.date); })
+      .y(function(d) { return yscale_squareroot(d['Terraforming Mars=count']); });
+
+  var TerraformingLine_2 = d3.line()
+      .x(function(d) { return x(d.date); })
+      .y(function(d) { return y_log(d['Terraforming Mars=count']); });
+
+  // define the Gloomhaven line
+  var GloomhavenLine = d3.line()
+      .x(function(d) { return x(d.date); })
+      .y(function(d) { return y(d['Gloomhaven=count']); });
+
+  var GloomhavenLine_1 = d3.line()
+      .x(function(d) { return x(d.date); })
+      .y(function(d) { return yscale_squareroot(d['Gloomhaven=count']); });
+
+  var GloomhavenLine_2 = d3.line()
+      .x(function(d) { return x(d.date); })
+      .y(function(d) { return y_log(d['Gloomhaven=count']); });
+
+  // define the Magic line
+  var MagicLine = d3.line()
+      .x(function(d) { return x(d.date); })
+      .y(function(d) { return y(d['Magic: The Gathering=count']); });
+  
+  var MagicLine_1 = d3.line()
+      .x(function(d) { return x(d.date); })
+      .y(function(d) { return yscale_squareroot(d['Magic: The Gathering=count']); });
+
+  var MagicLine_2 = d3.line()
+      .x(function(d) { return x(d.date); })
+      .y(function(d) { return y_log(d['Magic: The Gathering=count']); });
+
+  // define the Dixit line
+  var valueline7 = d3.line()
+      .x(function(d) { return x(d.date); })
+      .y(function(d) { return y(d['Dixit=count']); });
+  
+  var valueline7_1 = d3.line()
+      .x(function(d) { return x(d.date); })
+      .y(function(d) { return yscale_squareroot(d['Dixit=count']); });
+  
+  var valueline7_2 = d3.line()
+      .x(function(d) { return x(d.date); })
+      .y(function(d) { return y_log(d['Dixit=count']); });
+
+  // define the Monopoly line
+  var valueline8 = d3.line()
+      .x(function(d) { return x(d.date); })
+      .y(function(d) { return y(d['Monopoly=count']); });
+  
+  var valueline8_1 = d3.line()
+      .x(function(d) { return x(d.date); })
+      .y(function(d) { return yscale_squareroot(d['Monopoly=count']); });
+
+  var valueline8_2 = d3.line()
+      .x(function(d) { return x(d.date); })
+      .y(function(d) { return y_log(d['Monopoly=count']); });
+
+  //plot Q3.a//
+  // Create SVG element and append it to the body
+  var svg0 = d3.select("body")
+              .append("svg")  
+              .attr("id", "svg-a")  
+              .attr("width", width + margin.left + 5*margin.right) 
+              .attr("height", height + margin.top + margin.bottom); 
+            
+    // Append a <text> element 
+        svg0.append("text")
+                .attr("id","title-a")
+                .attr("x", (width / 2))
+                .attr("y", margin.top/1.5)
+                .text("Number of Ratings 2016-2020");  
+
+    // Append a 'g' element 
+        svg0.append("g")
+            .attr("id", "plot-a")
+            .attr("transform","translate(" + 2*margin.left + "," + margin.top + ")");  
+
+// Data//
+  // Loading data from csv
+  d3.dsv(",", "boardgame_ratings.csv", function(d) {
+    return {
+            date: time_parse(d.date),
+            ['Catan=count']:+d['Catan=count'],
+            ['Dominion=count']:+d['Dominion=count'],
+            ['Codenames=count']:+d['Codenames=count'],
+            ['Terraforming Mars=count']:+d['Terraforming Mars=count'],
+            ['Gloomhaven=count']:+d['Gloomhaven=count'],
+            ['Magic: The Gathering=count']:+d['Magic: The Gathering=count'],
+            ['Dixit=count']:+d['Dixit=count'],
+            ['Monopoly=count']:+d['Monopoly=count']
+    }
+  }).then(function(data) {
+    x.domain(d3.extent(data, function(d) { return d.date; }));
+    y.domain([0, d3.max(data, function(d) { return Math.max(d['Catan=count'],
+                                                         d['Dominion=count'], 
+                                                         d['Codenames=count'], 
+                                                         d['Terraforming Mars=count'], 
+                                                         d['Gloomhaven=count'], 
+                                                         d['Magic: The Gathering=count'], 
+                                                         d['Dixit=count'],
+                                                        d['Monopoly=count']); 
+                                            })]);
+
+// Define line data and labels
+      svg0.select("#plot-a")
+		  .append("g")
+		  .attr("id","lines-a")  
+          
+ const lines = [
+    { lineFunction: CatanLine, label: "Catan" ,count: 'Catan=count'},
+    { lineFunction: DominionLine, label: "Dominion" , count: 'Dominion=count'},
+    { lineFunction: CodenamesLine, label: "Codenames" , count: 'Codenames=count'},
+    { lineFunction: TerraformingLine, label: "Terraforming Mars", count: 'Terraforming Mars=count' },
+    { lineFunction: GloomhavenLine, label: "Gloomhaven", count: 'Gloomhaven=count'},
+    { lineFunction: MagicLine, label: "Magic: The Gathering", count: 'Magic: The Gathering=count'},
+    { lineFunction: valueline7, label: "Dixit" , count: 'Dixit=count'},
+    { lineFunction: valueline8, label: "Monopoly", count: 'Monopoly=count' }
+];
+
+// Loop through the lines array to add lines and labels
+lines.forEach((lineData, index) => {
+    // Add the line
+    svg0.select("#lines-a")
+        .append("path")
+        .datum(data)
+        .attr("fill", "none")
+        .attr("stroke", colors(index))
+        .attr("stroke-width", 1.5)
+        .attr("d", lineData.lineFunction);
+
+    // Add the label
+    svg0.select("#lines-a")
+        .append("text")
+        .attr("transform", "translate("+(width + 3)+","+y(data[45][lineData.count])+")")
+        .attr("dy", ".35em")
+        .attr("text-anchor", "start")
+        .style("fill", colors(index))
+        .text(lineData.label);
+});
+
+// Define x-axis with custom tick formatting and values every 3 months
+      svg0.select("g")
+        .append("g")  
+        .attr("id", "x-axis-a")  
+        .attr("transform", "translate(0," + height + ")")
+        .call(d3.axisBottom(x).ticks(d3.timeMonth.every(3))
+        .tickFormat(d3.timeFormat("%b %y"))) 
+
+// Add the text label for X Axis
+      svg0.select("#x-axis-a") 
+         .append("text") 
+         .attr("transform","translate(" + (width/2) + " ," + (margin.bottom) + ")")
+         .style("text-anchor", "middle")
+         .attr('fill', "black")
+         .text("Month");
+
+// Define y-axis with default tick count
+      svg0.select("g")
+         .append("g")
+         .attr("id", "y-axis-a")
+         .call(d3.axisLeft(y));  
+
+    // Add the text label for Y axis
+    svg0.select("#y-axis-a")
+        .append("text") 
+        .attr("y", 0 - 1.25*margin.left)
+        .attr("x",0 - (height / 2))
+        .attr("transform", "rotate(-90)")
+        .attr('fill', "black")
+        .text("Num of Ratings");
+
+  });
+
+//plot (Q3.b) //
+// Append the <svg> object 
+  var svg1 = d3.select("body")
+                .append("svg") 
+                .attr("id", "svg-b") 
+                .attr("width", width + margin.left + 5 * margin.right) 
+                .attr("height", height + margin.top + margin.bottom); 
+// Append title to the SVG
+      svg1.append("text").attr("id","title-b") 
+          .attr("x", (width / 2))
+          .attr("y", margin.top/1.5).text("Number of Ratings 2016-2020 with Rankings");
+
+// Append a 'group' element to the SVG 
+      svg1.append("g").attr("id", "plot-b")  
+          .attr("transform","translate(" + 2*margin.left + "," + margin.top + ")");
+
+
+ // Load data from CSV
+ d3.dsv(",", "boardgame_ratings.csv", function(row) {
+    // Parse and format data
+    return {
+            date: time_parse(row.date),
+            ['Catan=count']:+row['Catan=count'],
+            ['Dominion=count']:+row['Dominion=count'],
+            ['Codenames=count']:+row['Codenames=count'],
+            ['Terraforming Mars=count']:+row['Terraforming Mars=count'],
+            ['Gloomhaven=count']:+row['Gloomhaven=count'],
+            ['Magic: The Gathering=count']:+row['Magic: The Gathering=count'],
+            ['Dixit=count']:+row['Dixit=count'],
+            ['Monopoly=count']:+row['Monopoly=count'],
+            ['Catan=rank']:+row['Catan=rank'],
+            ['Codenames=rank']:+row['Codenames=rank'],
+            ['Terraforming Mars=rank']:+row['Terraforming Mars=rank'],
+            ['Gloomhaven=rank']:+row['Gloomhaven=rank']
+    }
+  }).then(function(data) {
+ // Set domains for x and y scales based on loaded data
+    x.domain(d3.extent(data, function(d) { return d.date; }));
+    y.domain([0, d3.max(data, function(d) { 
+      return Math.max(
+        d['Catan=count'], 
+        d['Dominion=count'], 
+        d['Codenames=count'], 
+        d['Terraforming Mars=count'], 
+        d['Gloomhaven=count'], 
+        d['Magic: The Gathering=count'], 
+        d['Dixit=count'], 
+        d['Monopoly=count']); })]);
+
+
+// Select the group element with id "plot-b" within svg1
+     svg1.select("#plot-b")
+        .append("g")
+        .attr("id","lines-b")  
+
+// Define an array of line data and labels
+ // Define line data and labels
+ const lines = [
+    { lineFunction: CatanLine, label: "Catan" ,count: 'Catan=count'},
+    { lineFunction: DominionLine, label: "Dominion" , count: 'Dominion=count'},
+    { lineFunction: CodenamesLine, label: "Codenames" , count: 'Codenames=count'},
+    { lineFunction: TerraformingLine, label: "Terraforming Mars", count: 'Terraforming Mars=count' },
+    { lineFunction: GloomhavenLine, label: "Gloomhaven", count: 'Gloomhaven=count'},
+    { lineFunction: MagicLine, label: "Magic: The Gathering", count: 'Magic: The Gathering=count'},
+    { lineFunction: valueline7, label: "Dixit" , count: 'Dixit=count'},
+    { lineFunction: valueline8, label: "Monopoly", count: 'Monopoly=count' }
+];
+
+// Loop through the line data to add lines and labels
+lines.forEach((lineData, index) => {
+    // Add the line
+    svg1.select("#lines-b")
+        .append("path")
+        .datum(data)
+        .attr("fill", "none")
+        .attr("stroke", colors(index))
+        .attr("stroke-width", 1.5) 
+        .attr("d", lineData.lineFunction);
+
+    // Add the label
+    svg1.select("#lines-b")
+        .append("text")
+        .attr("transform", "translate(" + (width + 3) + "," + y(data[45][lineData.count]) + ")")
+        .attr("dy", ".35em")
+        .attr("text-anchor", "start")
+        .style("fill", colors(index))
+        .text(lineData.label);
+});
+
+//draw points circle  
+    var plotlines2 = svg1.select("#plot-b")
+      .append("g")
+        .attr("id","symbols-b"); 
+
+// Define the circle data and their corresponding text labels
+const circleData = [
+    { countKey: "Catan=count", rankKey: "Catan=rank", colorIndex: 0 },
+    { countKey: "Codenames=count", rankKey: "Codenames=rank", colorIndex: 2 },
+    { countKey: "Terraforming Mars=count", rankKey: "Terraforming Mars=rank", colorIndex: 3 },
+    { countKey: "Gloomhaven=count", rankKey: "Gloomhaven=rank", colorIndex: 4 }
+];
+
+// Loop through the circle data to draw circles and their text labels
+circleData.forEach(circle => {
+    // Draw circles
+    plotlines2.selectAll()
+        .data(data.filter((d, i) => (i + 1) % 3 == 0))
+        .enter()
+        .append("circle")
+        .style("fill", colors(circle.colorIndex))
+        .attr('cx', d => x(d.date))
+        .attr('cy', d => y(d[circle.countKey]))
+        .attr('r', '10px');
+
+    // Draw text labels
+    plotlines2.selectAll('.circles')
+        .data(data.filter((d, i) => (i + 1) % 3 == 0))
+        .enter()
+        .append("text")
+        .text(d => d[circle.rankKey])
+        .attr("transform", d => "translate(" + x(d.date) + ", " + y(d[circle.countKey]) + ")")
+        .attr('fill', "gray")
+        .attr("text-anchor", "middle")
+        .style("font-size", "0.5em");
+});
+
+    // Add X axis (date format)
+    svg1.select("#plot-b").append("g")
+        .attr("id", "x-axis-b")  
+        .attr("transform", "translate(0," + height + ")")  
+        .call(d3.axisBottom(x)
+        .ticks(d3.timeMonth.every(3))
+        .tickFormat(d3.timeFormat("%b %y"))) 
+
+    // Add the text label for X Axis
+    svg1.select("#x-axis-b")
+        .append("text")  
+        .attr("transform","translate(" + (width/2) + " ," + (margin.bottom) + ")")
+        .style("text-anchor", "middle")
+        .attr('fill', "black")
+        .text("Month");
+    
+    // Add Y axis
+    svg1.select("#plot-b").append("g")
+        .attr("id", "y-axis-b")  
+        .call(d3.axisLeft(y));
+
+    // Add the text label for Y axis
+    svg1.select("#y-axis-b")
+        .append("text")  
+        .attr("y", 0 - 1.25*margin.left)
+        .attr("x",0 - (height / 2))
+        .attr("transform", "rotate(-90)")
+        .attr('fill', "black")
+        .text("Num of Ratings");
+
+     // add legend symbol and legend labels
+     svg1.append("g")
+        .attr("id","legend-b")
+        .append('circle')
+        .attr('cx', '90%')
+        .attr('cy', '85%')
+        .attr('r', 12.5)
+        .style("fill", 'black');
+    
+    // Add legend label for "BoardGameGreek Rank"
+    svg1.select("#legend-b")
+      .append("text")
+        .attr("x", 1020)
+        .attr("y", 455)
+        .attr("text-anchor", "middle")
+        .style("fill", "black")
+        .text("BoardGameGreek Rank");
+
+    //Add legend label for "rank"
+    svg1.select("#legend-b")
+      .append("text")
+      .text('rank')
+      .attr("x", 1010)
+      .attr("y", 425)
+      .attr('fill', "gray")
+      .attr("text-anchor", "middle")
+      .style("font-size", "0.5em");
+      });
+
+//plot (Q3.c1) //
+  // Set the ranges for the y-axis using square root scale
+  var yscale_squareroot = d3.scaleSqrt().range([height, 0]);
+
+  // append the svg obgect to the body of the page
+  var svg2 = d3.select("body")
+               .append("svg")
+                .attr("id", "svg-c-1")  //svg id=”svg-c-1”> plot (Q3.c1) 
+                .attr("width", width + margin.left + 5*margin.right)
+                .attr("height", height + margin.top + margin.bottom);
+        // Add title to the SVG
+        svg2.append("text").attr("id","title-c-1")  
+            .attr("x", (width / 2))
+            .attr("y", margin.top/1.5)
+            .text("Number of Ratings 2016-2020 (Square root Scale)");
+
+        // Add a group for plotting 
+        svg2.append("g")
+            .attr("id", "plot-c-1") 
+            .attr("transform","translate(" + 2*margin.left + "," + margin.top + ")");
+
+  // Load data from CSV file using D3
+  d3.dsv(",", "boardgame_ratings.csv", function(c) {
+    return {
+            date: time_parse(c.date),
+            ['Catan=count']:+c['Catan=count'],
+            ['Dominion=count']:+c['Dominion=count'],
+            ['Codenames=count']:+c['Codenames=count'],
+            ['Terraforming Mars=count']:+c['Terraforming Mars=count'],
+            ['Gloomhaven=count']:+c['Gloomhaven=count'],
+            ['Magic: The Gathering=count']:+c['Magic: The Gathering=count'],
+            ['Dixit=count']:+c['Dixit=count'],
+            ['Monopoly=count']:+c['Monopoly=count'],
+            ['Catan=rank']:+c['Catan=rank'],
+            ['Codenames=rank']:+c['Codenames=rank'],
+            ['Terraforming Mars=rank']:+c['Terraforming Mars=rank'],
+            ['Gloomhaven=rank']:+c['Gloomhaven=rank']
+    }
+  }).then(function(data) {
+    x.domain(d3.extent(data, function(d) { return d.date; }));
+    yscale_squareroot.domain([0, d3.max(data, function(d) { 
+        return Math.max(d['Catan=count'], 
+                d['Dominion=count'], 
+                d['Codenames=count'], 
+                d['Terraforming Mars=count'], 
+                d['Gloomhaven=count'], 
+                d['Magic: The Gathering=count'], 
+                d['Dixit=count'], 
+                d['Monopoly=count']); 
+            })]);
+
+// Append a group for lines and labels
+  svg2.select("#plot-c-1")
+      .append("g")
+      .attr("id", "lines-c-1"); 
+
+// Data for lines and labels
+const lineData = [
+    { lineFunction: CatanLine_1, countKey: 'Catan=count', label: 'Catan', colorIndex: 0 },
+    { lineFunction: DominionLine_1, countKey: 'Dominion=count', label: 'Dominion', colorIndex: 1 },
+    { lineFunction: CodenamesLine_1, countKey: 'Codenames=count', label: 'Codenames', colorIndex: 2 },
+    { lineFunction: TerraformingLine_1, countKey: 'Terraforming Mars=count', label: 'Terraforming Mars', colorIndex: 3 },
+    { lineFunction: GloomhavenLine_1, countKey: 'Gloomhaven=count', label: 'Gloomhaven', colorIndex: 4 },
+    { lineFunction: MagicLine_1, countKey: 'Magic: The Gathering=count', label: 'Magic: The Gathering', colorIndex: 5 },
+    { lineFunction: valueline7_1, countKey: 'Dixit=count', label: 'Dixit', colorIndex: 6 },
+    { lineFunction: valueline8_1, countKey: 'Monopoly=count', label: 'Monopoly', colorIndex: 7 }
+];
+
+// Loop to add lines and labels
+lineData.forEach(line => {
+    // Add line
+    svg2.select("#lines-c-1")   
+		.append("path")
+        .datum(data)
+        .attr("fill", "none")
+        .attr("stroke", colors(line.colorIndex))
+        .attr("stroke-width", 1.5)
+        .attr("d", line.lineFunction);
+
+    // Add label
+    svg2.select("#lines-c-1") 
+	    .append("text")
+        .attr("transform", "translate(" + (width + 3) + "," + yscale_squareroot(data[45][line.countKey]) + ")")
+        .attr("dy", ".35em")
+        .attr("text-anchor", "start")
+        .style("fill", colors(line.colorIndex))
+        .text(line.label);
+});
+
+//Create var plotlines3 and add the DOM symbols-c-1
+    var plotlines3 = svg2.select("#plot-c-1")
+                        .append("g")
+                        .attr("id","symbols-c-1");  
+
+//draw points circle
+// Define a function to draw circles and their corresponding text
+function drawCircleAndText(countKey, rankKey, colorIndex) {
+    plotlines3.selectAll()
+        .data(data)
+        .enter()
+        .filter((d, i) => (i + 1) % 3 == 0)
+        .append("circle")
+        .style("fill", colors(colorIndex))
+        .attr('cx', d => x(d.date))
+        .attr('cy', d => yscale_squareroot(d[countKey]))
+        .attr('r', '10px');
+
+    plotlines3.selectAll('.circles')
+        .data(data)
+        .enter()
+        .filter((d, i) => (i + 1) % 3 == 0)
+        .append("text")
+        .text(d => d[rankKey])
+        .attr("transform", d => "translate(" + x(d.date) + ", " + yscale_squareroot(d[countKey]) + ")")
+        .attr('fill', "gray")
+        .attr("text-anchor", "middle")
+        .style("font-size", "0.5em");
+}
+
+// Draw circles and text for each dataset
+drawCircleAndText('Catan=count', 'Catan=rank', 0);
+drawCircleAndText('Codenames=count', 'Codenames=rank', 2);
+drawCircleAndText('Terraforming Mars=count', 'Terraforming Mars=rank', 3);
+drawCircleAndText('Gloomhaven=count', 'Gloomhaven=rank', 4);
+
+ // Add X axis with date format
+    svg2.select("g").append("g")
+        .attr("id", "x-axis-c-1")  
+        .attr("transform", "translate(0," + height + ")")
+        .call(d3.axisBottom(x)
+        .ticks(d3.timeMonth.every(3))
+        .tickFormat(d3.timeFormat("%b %y")))
+
+    // Add the text label for X Axis
+    svg2.select("#x-axis-c-1")
+        .append("text")  
+        .attr("transform","translate(" + (width/2) + " ," + (margin.bottom) + ")")
+        .style("text-anchor", "middle")
+        .attr('fill', "black")
+        .text("Month");
+    
+    // Add Y axis
+    svg2.select("g")
+        .append("g")
+        .attr("id", "y-axis-c-1")  
+        .call(d3.axisLeft(yscale_squareroot));
+
+    // Add the text label for Y axis
+    svg2.select("#y-axis-c-1")
+        .append("text")  
+        .attr("y", 0 - 1.25*margin.left)
+        .attr("x",0 - (height / 2))
+        .attr("transform", "rotate(-90)")
+        .attr('fill', "black")
+        .text("Num of Ratings");
+
+    // Add legend symbol and legend labels
+    var legendG = svg2.select("#svg-c-1")
+                          .append("g")
+                          .attr("id", "legend-c-1");  
+
+// Add legend circle symbol
+legendG.append('circle')
+    .attr('cx', '90%')
+    .attr('cy', '85%')
+    .attr('r', 12.5)
+    .style("fill", 'black');
+
+// Add legend label
+legendG.append("text")
+    .attr("x", 1020)
+    .attr("y", 455)
+    .attr("text-anchor", "middle")
+    .style("fill", "black")
+    .text("BoardGameGreek Rank");
+
+// Add legend label for "rank"
+legendG.append("text")
+    .text('rank')
+    .attr("x", 1010)
+    .attr("y", 425)
+    .attr('fill', "gray")
+    .attr("text-anchor", "middle")
+    .style("font-size", "0.5em");
+  });
+
+//plot (Q3.c2) //
+  // Set the range for the y-axis using a logarithmic scale
+  var y_log = d3.scaleLog().range([height, 0]);
+
+// Append an <svg> element to the body of the HTML page
+  var svg3 = d3.select("body")
+                .append("svg") 
+                .attr("id", "svg-c-2") 
+                .attr("width", width + margin.left + 5 * margin.right) 
+                .attr("height", height + margin.top + margin.bottom); 
+
+    // Append a <text> element to the <svg> for the title
+        svg3.append("text")
+            .attr("id", "title-c-2") 
+            .attr("x", (width / 2)) 
+            .attr("y", margin.top / 1.5) 
+            .text("Number of Ratings 2016-2020 (Log Scale)"); 
+
+    // Append a <g> element to the <svg> for the plot
+        svg3.append("g")
+            .attr("id", "plot-c-2")
+            .attr("transform", "translate(" + 2 * margin.left + "," + margin.top + ")"); 
+
+// // Load data 
+d3.dsv(",", "boardgame_ratings.csv", function(c) {
+    // Return an object
+    return {
+            date: time_parse(c.date),
+            ['Catan=count']: +c['Catan=count'],
+            ['Dominion=count']: +c['Dominion=count'],
+            ['Codenames=count']: +c['Codenames=count'],
+            ['Terraforming Mars=count']: +c['Terraforming Mars=count'],
+            ['Gloomhaven=count']: +c['Gloomhaven=count'],
+            ['Magic: The Gathering=count']: +c['Magic: The Gathering=count'],
+            ['Dixit=count']: +c['Dixit=count'],
+            ['Monopoly=count']: +c['Monopoly=count'],
+            ['Catan=rank']: +c['Catan=rank'],
+            ['Codenames=rank']: +c['Codenames=rank'],
+            ['Terraforming Mars=rank']: +c['Terraforming Mars=rank'],
+            ['Gloomhaven=rank']: +c['Gloomhaven=rank']
+    };
+  }).then(function(data) {
+    // Set the domain of the x-axis 
+    x.domain(d3.extent(data, function(d) { return d.date; }));
+    // Set the domain of the y-axis 
+    y_log.domain([1, d3.max(data, function(d) { return Math.max(d['Catan=count'], 
+                                                        d['Dominion=count'], 
+                                                        d['Codenames=count'], 
+                                                        d['Terraforming Mars=count'],
+                                                        d['Gloomhaven=count'], 
+                                                        d['Magic: The Gathering=count'], 
+                                                        d['Dixit=count'], 
+                                                        d['Monopoly=count']); 
+                                                    })]);
+
+  // Append a group for lines and labels
+  svg3.select("#plot-c-2")
+      .append("g")
+      .attr("id", "lines-c-2"); 
+  
+  // Data for lines and labels
+const lineData = [
+    { lineFunction: CatanLine_2, countKey: 'Catan=count', label: 'Catan', colorIndex: 0 },
+    { lineFunction: DominionLine_2, countKey: 'Dominion=count', label: 'Dominion', colorIndex: 1 },
+    { lineFunction: CodenamesLine_2, countKey: 'Codenames=count', label: 'Codenames', colorIndex: 2 },
+    { lineFunction: TerraformingLine_2, countKey: 'Terraforming Mars=count', label: 'Terraforming Mars', colorIndex: 3 },
+    { lineFunction: GloomhavenLine_2, countKey: 'Gloomhaven=count', label: 'Gloomhaven', colorIndex: 4 },
+    { lineFunction: MagicLine_2, countKey: 'Magic: The Gathering=count', label: 'Magic: The Gathering', colorIndex: 5 },
+    { lineFunction: valueline7_2, countKey: 'Dixit=count', label: 'Dixit', colorIndex: 6 },
+    { lineFunction: valueline8_2, countKey: 'Monopoly=count', label: 'Monopoly', colorIndex: 7 }
+    ];
+
+// Loop to add lines and labels
+lineData.forEach(line => {  
+    svg3.select("#lines-c-2")
+        .append("path")
+        .datum(data)
+        .attr("fill", "none")
+        .attr("stroke", colors(line.colorIndex))
+        .attr("stroke-width", 1.5)
+        .attr("d", line.lineFunction);
+
+    svg3.select("#lines-c-2")
+      .append("text")
+        .attr("transform", "translate("+(width + 3)+","+y_log(data[45][line.countKey])+")")
+        .attr("dy", ".35em")
+        .attr("text-anchor", "start")
+        .style("fill", colors(line.colorIndex))
+        .text(line.label);
+    });
+
+// Select the <g> element 
+  var plotlines4 = svg3.select("#plot-c-2")
+      .append("g")
+      .attr("id","symbols-c-2");  
+
+// Define a function to draw circles and text for a game
+function drawCircleAndText(gameName, countKey, rankKey, colorIndex) {
+    // Draw circles
+    plotlines4.selectAll()
+        .data(data)
+        .enter()
+        .filter((d, i) => (i + 1) % 3 == 0)
+        .append("circle")
+        .style("fill", colors(colorIndex))
+        .attr('cx', d => x(d.date))
+        .attr('cy', d => y_log(d[countKey]))
+        .attr('r', '10px');
+
+    // Draw text
+    plotlines4.selectAll('.circles')
+        .data(data)
+        .enter()
+        .filter((d, i) => (i + 1) % 3 == 0)
+        .append("text")
+        .text(d => d[rankKey])
+        .attr("transform", d => "translate(" + x(d.date) + ", " + y_log(d[countKey]) + ")")
+        .attr('fill', "gray")
+        .attr("text-anchor", "middle")
+        .style("font-size", "0.5em");
+    }
+
+// Draw points for each game
+drawCircleAndText('Catan', 'Catan=count', 'Catan=rank', 0);
+drawCircleAndText('Codenames', 'Codenames=count', 'Codenames=rank', 2);
+drawCircleAndText('Terraforming Mars', 'Terraforming Mars=count', 'Terraforming Mars=rank', 3);
+drawCircleAndText('Gloomhaven', 'Gloomhaven=count', 'Gloomhaven=rank', 4);
+
+    // Add X axis to the plot
+    svg3.select("g").append("g")
+        .attr("id", "x-axis-c-2") 
+        .attr("transform", "translate(0," + height + ")") 
+        .call(d3.axisBottom(x) 
+        .ticks(d3.timeMonth.every(3)) 
+        .tickFormat(d3.timeFormat("%b %y"))) 
+
+    // Add the text label for X Axis
+    svg3.select("#x-axis-c-2").append("text")
+        .attr("transform","translate(" + (width/2) + " ," + (margin.bottom) + ")") 
+        .style("text-anchor", "middle") 
+        .attr('fill', "black") 
+        .text("Month"); 
+
+    // Add Y axis to the plot
+    svg3.select("g").append("g")
+        .attr("id", "y-axis-c-2") 
+        .call(d3.axisLeft(y_log)); 
+
+    // Add the text label for Y axis
+    svg3.select("#y-axis-c-2").append("text")
+        .attr("y", 0 - 1.25 * margin.left) 
+        .attr("x", 0 - (height / 2)) 
+        .attr("transform", "rotate(-90)") 
+        .attr('fill', "black") 
+        .text("Num of Ratings"); 
+
+    // add legend symbol and legend labels
+    svg3.select("#svg-c-2")
+        .append("g")
+        .attr("id","legend-c-2")
+        .append('circle')
+        .attr('cx', '90%')
+        .attr('cy', '85%')
+        .attr('r', 12.5)
+        .style("fill", 'black');
+    
+    svg3.select("#legend-c-2")
+      .append("text")
+        .attr("x", 1020)
+        .attr("y", 455)
+        .attr("text-anchor", "middle")
+        .style("fill", "black")
+        .text("BoardGameGreek Rank");
+
+    svg3.select("#legend-c-2")
+      .append("text")
+      .text('rank')
+      .attr("x", 1010)
+      .attr("y", 425)
+      .attr('fill', "gray")
+      .attr("text-anchor", "middle")
+      .style("font-size", "0.5em");
+});
+
+
+</script>
+    <div id='signature'>xjiao34</div>
+</body>

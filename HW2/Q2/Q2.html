@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<head>
+<style>
+/* CSS styles */
+path.link {
+  fill: none; /* No fill color for the paths */
+  stroke: #666; /* Grey stroke color */
+  stroke-width: 1.5px; /* Width of the stroke */
+}
+
+circle {
+  fill: #ccc; /* Light grey fill color for circles */
+  stroke: #fff; /* White stroke color */
+  stroke: black; /* Stroke color set to black, overrides the previous line */
+  stroke-width: 1.5px; /* Width of the circle's stroke */
+}
+
+text {
+  fill: #000; /* Black color for text */
+  font: 10px sans-serif; /* Font style for text */
+  pointer-events: none; /* Text won't be a target of mouse events */
+}
+
+</style>
+<meta charset="utf-8">
+<title></title>
+</head>
+
+<body>
+<script type="text/javascript" src="../lib/d3.v5.min.js"></script>
+<script>
+
+// Load data
+d3.dsv(",", "board_games.csv", function(d) {
+  return {
+    source: d.source, // Column 'source' from the CSV
+    target: d.target,
+    value: +d.value // Column 'value' from the CSV
+  }
+}).then(function(data) {
+
+  var links = data;
+
+  var nodes = {};
+
+  // compute the distinct nodes from the links.
+  links.forEach(function(link) {
+      link.source = nodes[link.source] || (nodes[link.source] = {name: link.source});
+      link.target = nodes[link.target] || (nodes[link.target] = {name: link.target});
+  });
+  
+  // Define the dimensions 
+  var width = 1200,
+      height = 700;
+
+// Initialize the force simulation with nodes and forces
+  var force = d3.forceSimulation()
+      .nodes(d3.values(nodes))
+      .force("link", d3.forceLink(links).distance(100))
+      .force('center', d3.forceCenter(width / 2, height / 2))
+      .force("x", d3.forceX())
+      .force("y", d3.forceY())
+      .force("charge", d3.forceManyBody().strength(-250))
+      .alphaTarget(1)
+      .on("tick", tick);
+
+ // Append an SVG element
+  var svg = d3.select("body")
+      .append("svg")
+      .attr("width", width)
+      .attr("height", height);
+
+  // Add the links as path elements
+  var path = svg.append("g")
+      .selectAll("path")
+      .data(links)
+      .enter()
+      .append("path")
+      .attr("class", function(d) { 
+        return "link " + d.type; });
+
+  // Define the nodes in the SVG
+  var node = svg.selectAll(".node")
+      .data(force.nodes()) // Bind the nodes data to the elements
+      .enter().append("g")
+      .attr("class", "node")
+      .call(d3.drag() // Add drag behavior
+          .on("start", dragstarted)
+          .on("drag", dragged)
+          .on("end", dragended));
+
+  // Add the nodes as circle elements
+  node.append("circle")
+      .attr("id", function(d){
+        // Generate an ID for each node based on its name
+         return (d.name.replace(/\s+/g,'').toLowerCase());
+      })
+      .attr("r", 5); // Set the radius of the nodes
+
+  // Adding Node Labels
+  node.append("text")
+      .attr("x", 8)
+      .attr("y", ".31em")
+      .text(d => d.name)  // Using arrow function for conciseness
+      .style("font-weight", "bold");
+
+  // Styling Edges
+  // Apply styles to the links based on their 'value' attribute
+  path.style("stroke", d => d.value === 0 ? "gray" : "green") // Using ternary operator for stroke color
+      .style("stroke-width", d => d.value === 0 ? "2px" : "1px") // Adjusting stroke width based on value
+      .style("stroke-dasharray", d => d.value === 1 ? "5, 5" : "none"); // Applying dashed stroke for certain values
+
+
+// Function to update positions of paths and nodes on each simulation 'tick'
+function tick() {
+    // Update the path (edge) positions for curved lines
+      path.attr("d", function(d) {
+          var dx = d.target.x - d.source.x,
+              dy = d.target.y - d.source.y,
+              dr = Math.sqrt(dx * dx + dy * dy);
+              // Calculate curvature radius
+          return "M" +
+              d.source.x + "," +
+              d.source.y + "A" +
+              dr + "," + dr + " 0 0,1 " +
+              d.target.x + "," +
+              d.target.y;
+      });
+        // Update the node positions
+      node.attr("transform", function(d) {
+          return "translate(" + d.x + "," + d.y + ")"; 
+      });
+  };
+
+// Drag event handlers for nodes
+  function dragstarted(d) {
+      if (!d3.event.active) force.alphaTarget(0.3).restart();
+      d.fx = d.x;
+      d.fy = d.y;
+  };
+
+  function dragged(d) {
+      d.fx = d3.event.x;
+      d.fy = d3.event.y;
+  };
+
+  function dragended(d) {
+      if (!d3.event.active) force.alphaTarget(0);
+      if (d.fixed == true) {  // Toggle fixed state on drag end
+          d.fx = d.x; // If the node is fixed, keep it in place
+          d.fy = d.y;
+      }
+      else {
+        // If the node is not fixed, clear the forces
+          d.fx = null;
+          d.fy = null;
+      }
+  };
+
+// C. Scaling Nodes
+// Compute the degree for each node based on the number of connections
+links.forEach(link => {
+    nodes[link.source.name].degree = (nodes[link.source.name].degree || 0) + 1;
+    nodes[link.target.name].degree = (nodes[link.target.name].degree || 0) + 1;
+});
+
+// Define a scale for node radius
+const radiusScale = d3.scaleSqrt()
+    .domain(d3.extent(d3.values(nodes), d => d.degree))
+    .range([5, 20]); // Example range
+
+// Apply the radius scale to nodes
+node.select("circle")
+    .attr("r", d => radiusScale(d.degree));
+
+// Node Color Gradients
+// Define a color scale for nodes
+const colorScale = d3.scaleSequential(d3.interpolateBlues)
+    .domain(d3.extent(d3.values(nodes), d => d.degree));
+
+// Apply the color scale to the fill of the nodes
+node.select("circle")
+    .style("fill", d => colorScale(d.degree));
+
+
+// D. Pinning Nodes
+// Update the dragged function to fix the position of nodes and change their color
+function dragged(d) {
+    d.fx = d3.event.x;
+    d.fy = d3.event.y;
+    d.fixed = true; // set the node as fixed on drag
+    d3.select(this)
+      .select("circle")
+      .style("fill", "white");
+};
+
+// 3. Unpinning Nodes on Double Click
+node.on("dblclick", function(d) {
+    d.fx = null;
+    d.fy = null;
+    d.fixed = false; // unset the fixed position
+    d3.select(this)
+      .select("circle")
+      .style("fill", function(d) { 
+        return colorScale(d.degree); }); 
+});
+
+var x_offset = 30;
+var y_offset = 20;
+svg.append("text")
+    .attr("x", width - x_offset)
+    .attr("y", y_offset)
+    .attr("id", "credit")
+    .attr("text-anchor", "end")
+    .style("font-size", "15px")
+    .text("xjiao34");
+  
+}).catch(function(error) {
+  console.log(error);
+});
+
+</script>
+</body>
+</html>

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+
+<head>
+  <title>Games Rating: 2015 - 2019</title>
+  <meta charset="utf-8">
+  <style>
+      .line {
+      fill: none;
+      stroke: #1100ff; 
+      stroke-width: 4;
+  }
+  </style>
+</head>
+
+<!-- Functional advisory test-->
+<body>
+  <script type="text/javascript" src="../lib/d3.v5.min.js"></script>
+  <script type="text/javascript" src="../lib/d3-dsv.min.js"></script>
+
+  <!-- Example hiding an element -->
+  <!-- <g id="" style"display:none;" /> -->
+
+  <!-- Example of styling an element -->
+  <!-- svg_element.style()-->
+
+  <script>
+    // define the dimensions and margins for the line chart
+    // Use the Margin Convention referenced in the HW document to layout your graph
+
+    var margin = {top: 20, right: 40, bottom: 30, left: 50};
+
+    // define the dimensions and margins for the bar chart
+    var width = 960 - margin.left - margin.right;
+    var height = 500 - margin.top - margin.bottom;
+
+    // Define a function to parse time in years format using d3.timeParse
+    var parseYear = d3.timeParse("%Y");
+
+    // Define a time format for displaying years
+    var timeYear = d3.timeFormat("%Y");
+
+    // Define scales for x and y axes
+    // 4.a Part 2: Test line chart path
+    var x = d3.scaleLinear().range([0, width]);
+
+    // 4.a. Part 3: Test line
+    var y = d3.scaleLinear().range([height, 0]);
+    
+    // append svg element to the body of the page
+    // set dimensions and position of the svg element
+    let svg = d3
+      .select("body")
+      .append("svg")
+      .attr("id", "line_chart")  //DOM <svg id=”line_chart”> containing line chart 
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+      .attr("id", "container")  //DOM <g id="container">  
+      .attr("transform",
+        "translate(" + margin.left + "," + margin.top + ")");
+
+    // Fetch the data
+	var pathToCsv = "average-rating.csv";
+
+
+    d3.dsv(",", pathToCsv, function (d) {
+      return {
+        // format data attributes if required
+        name: d.name,
+        year: timeYear(parseYear(d.year)),
+        average_rating: Math.floor(d.average_rating),
+        users_rated: +d.users_rated
+      }
+    }).then(function (data) {
+    
+    // Functional Advisory Test - Linechart Information
+    var year_filtered = data.filter(function(d) {return ["2015", "2016", "2017", "2018", "2019"].includes(d.year);});
+
+
+    // 4.a Part 1 : Testing data and presentation of appropriate 
+    var groupedData = d3.nest()
+                        .key(function(d) { return d.year; }).sortKeys(d3.ascending) 
+                        .key(function(d) { return d.average_rating; }).sortKeys(d3.ascending) 
+                        .rollup(function(values) { return values.length; }) 
+                        .entries(year_filtered) 
+                        .map(function(group) {
+                        group.values.map(function(entry, index) {
+                              if (entry.key !== index.toString()) {
+                              group.values.unshift({ key: index.toString(), value: 0 });}
+                              });
+                              return group;});
+
+
+    // Create a new array by iterating over each group in 'groupedData'
+    var groupedData1 = groupedData.map(function(group) {
+                            if (group.values.length < 10) {
+                             group.values.push({ key: '9', value: 0 }); }
+                            return group;}); 
+
+    // Set the domain for the x-axis scale
+    x.domain([0, d3.max(data, function(d) { return Math.max(d.average_rating);})]);
+    y.domain([0, d3.max(groupedData.map(d => d.values).flat().map(d => d.value))]);
+
+//  Figure 4b  - Line Chart   //
+    // Define the line generator
+    var lineGenerator = d3.line().x(function(d) { return x(d.key); }) 
+                                 .y(function(d) { return y(d.value); }); 
+
+    // Add the lines to the SVG
+    svg.append("g")
+       .attr("id", "lines") // DOM <g id=”lines”> element containing all line elements 
+       .selectAll("path")  
+       .data(groupedData1) 
+       .enter()
+       .append("path") // DOM <path> elements for plotted lines 
+       .attr("d", function(d) { return lineGenerator(d.values); }) 
+       .style("fill", "None") 
+       .style("stroke-width", 1.5) 
+       .attr("stroke", function(d) { 
+          if (d.key === "2015") {
+              return "brown";
+          } else if (d.key === "2016") {
+              return "pink";
+          } else if (d.key === "2017") {
+              return "grey";
+          } else if (d.key === "2018") {
+              return "yellow";
+          } else {
+              return "blue";
+          }
+        }); 
+        // 4.b Part 1: Test stroke-color
+
+
+    // Function to handle mouseover event and increase the radius of the circle
+    // 4.e: Test that the circle changes
+    function increaseCircleRadius(data, index) {
+          d3.select(this)
+            .transition()
+            .duration(1)
+            .attr("r", 10);}
+
+    // Function to handle mouseout event and decrease the radius of the circle
+    // 4.f: Test that the circle changes
+    function decreaseCircleRadius(data, index) {
+          d3.select(this)
+            .transition()
+            .duration(1)
+            .attr("r", 5);}
+
+    //Add circles
+    var cirles = svg.append("g").attr("id", "circles")  
+    //DOM <g id=”circles”> element for all circular elements
+
+    // Define an array of colors corresponding to each year
+    var yearColors = ["brown", "pink", "grey", "yellow", "blue"];
+
+    // Loop through each year
+    for (var i = 0; i < 5; i++) {
+          var filteredYearData = groupedData1.filter(function(d) { return d.key === (2015 + i).toString(); }); 
+          cirles.selectAll(".dataCircle")
+                .data(filteredYearData)
+                .enter()
+                .selectAll()
+                .data(d => d.values)
+                .enter()
+                .append("circle")
+                .attr("r", 5)
+                .attr("cx", function(d) { return x(d.key); })
+                .attr("cy", function(d) { return y(d.value); })
+                .style("fill", yearColors[i])
+                .on("mouseover", increaseCircleRadius)
+                .on("mouseout", decreaseCircleRadius);}
+    // 4.b Part 4: Test for the correct
+
+// 4.b Part 2 and 4.b Part 3: Create and position rank symbols
+    var rankSymbols = svg.selectAll(".rank-symbol")
+                        .data(filteredYearData) 
+                        .enter()
+                        .append("circle")
+                        .attr("class", "rank-symbol")
+                        .attr("cx", function(d) { return x(d.key); }) 
+                        .attr("cy", function(d) { return y(d.value); }) 
+                        .attr("r", 5) 
+                    
+
+    // Add the X Axis to the SVG container
+    // 4.a Part 4: Test x-axis
+    svg.append("g")
+        .attr("id", "x-axis-lines") //DOM <g id=”x-axis-lines"> element for x-axis 
+        .attr("transform", "translate(0," + height + ")") 
+        .call(d3.axisBottom(x));     
+
+    // Add the text label for X Axis
+    svg.select("#x-axis-lines").append("text")
+       .attr("transform","translate(" + (width/2) + " ," + (margin.bottom-5) + ")") 
+       .attr('fill', "black") 
+       .text("Rating"); 
+
+    // Add the Y Axis to the SVG container
+    // 4.a Part 5: Test the y-axis 
+    svg.append("g").attr("id", "y-axis-lines") //DOM <g id=”y-axis-lines"> element for y-axis 
+        .call(d3.axisLeft(y)); 
+
+    // Add the text label for Y axis
+    svg.select("#y-axis-lines").append("text")
+        .attr("y", -margin.left/2) 
+        .attr("x", -(height / 2)+50) 
+        .attr("transform", "rotate(-90)") 
+        .style("text-anchor", "middle") 
+        .attr('fill', "black") 
+        .text("Count"); 
+
+    // Append the chart title to the SVG
+    svg.append("text")
+        .attr("id", "line_chart_title") // DOM <text id=”line_chart_title”> element for line chart title
+        .attr("x", (width / 2)) 
+        .attr("y", 5) 
+        .attr("text-anchor", "middle") 
+        .text("Board games by Rating 2015-2019"); 
+// 4.b Part 5: Test the line chart title
+
+    // Append the credit text to the SVG
+    svg.append("text")
+        .attr("id", "credit") // DOM <text id=”credit”> element for GT username 
+        .attr("x", (width / 2)) 
+        .attr("y", 30) 
+        .attr("text-anchor", "middle") 
+        .text("xjiao34"); 
+// 4.b Part 5: Ungraded check for GTUsername
+
+    // add legend TO DOM
+      svg.append("g")
+          .attr("id","legend") 
+
+    // Define the legend data
+    var legendData = [
+                      { color: "blue", text: "2019", y: 205 },
+                      { color: "yellow", text: "2018", y: 183 },
+                      { color: "grey", text: "2017", y: 158 },
+                      { color: "pink", text: "2016", y: 133 },
+                      { color: "brown", text: "2015", y: 105 }
+                      ];
+
+    // Append circles and text for each legend item
+    svg.select("#legend")
+        .selectAll("circle") 
+        .data(legendData)
+        .enter()
+        .append("circle")  
+        .attr('cx', '80%')
+        .attr('cy', function(d, i) { return (40 - i * 5) + "%"; })
+        .attr('r', 5)
+        .style("fill", function(d) { return d.color; });
+  // 4.b Part 6 - Test the legend colors
+
+
+    svg.select("#legend")
+        .selectAll("text")
+        .data(legendData)
+        .enter()
+        .append("text")
+        .attr("x", 800)
+        .attr("y", function(d) { return d.y; })
+        .attr("text-anchor", "middle")
+        .style("fill", "black")
+        .text(function(d) { return d.text; });  
+  // 4.b Part 7 - Test the legend labels
+
+        
+   // Interactivity and sub-chart //
+    // Select the <body> element and append an <svg> element to it
+     let svg1 = d3.select("body")
+                  .append("svg")
+                  .attr("id", "bar_chart") // DOM <svg id=”bar_chart” > containing bar chart 
+                  .attr("width", width + margin.left + 5 * margin.right) 
+                  .attr("height", height + margin.top + margin.bottom) 
+                  .append("g") 
+                  .attr("id", "container_2") // DOM <g id=”container_2”> 
+                  .attr("transform", "translate(" + margin.left + "," + margin.top + ")"); 
+
+    // Define the x-scale using linear scale
+    var xscale = d3.scaleLinear()
+                   .domain([0, d3.max(year_filtered, function(d) { return d.users_rated; })]) 
+                   .range([0, width]); 
+
+    // Define the y-scale using point scale
+    var yscale = d3.scalePoint()
+                   .domain(['ICECOOL', 'Cottage Ga', 'Dream Home', 'Kodama: Th', 'Joking Haz']) 
+                   .range([height, 0]); 
+
+
+    // Append the x-axis to the SVG
+    svg1.append("g")
+        .attr("id", "x-axis-bars") 
+        .attr("transform", "translate(0," + height + ")") 
+        .call(d3.axisBottom(xscale)); 
+
+    // Append the text label for the x-axis
+    svg1.append("text")
+        .attr("id", "bar_x_axis_label") 
+        .attr("transform", "translate(" + (width / 2) + " ," + (height + margin.top * 1.5) + ")") 
+        .text("Number of users"); 
+
+    // Append the y-axis to the SVG
+    svg1.append("g")
+        .attr("id", "y-axis-bars") 
+        .call(d3.axisLeft(yscale)); 
+
+    // Append the text label for the y-axis
+    svg1.append("text")
+        .attr("id", "bar_y_axis_label") 
+        .attr("y", -margin.left / 2) 
+        .attr("x", -(height / 2)) 
+        .attr("transform", "rotate(-90)") 
+        .text("Games"); 
+
+    svg1.append("g")
+        .attr("id", "bars") 
+        .selectAll(".bar")
+        .data(year_filtered)
+        .enter().append("rect")
+        .attr("class", "bar")
+        .attr("x", function (d) { return x(d.users_rated); })
+        .attr("width", 5)
+        .attr("y", function (d) { return y(d.name); })
+        .attr("height", function (d) { return height - y(d.name); })
+        .attr('fill', "steelblue");  
+
+      });
+
+  </script>
+
+</body>
