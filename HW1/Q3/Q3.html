@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<!-- cse6242 -->
+
+<!-- run: http-server & -->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>    
+    /* Define css rules here */
+  </style>
+<title>Running Total of TMDb Movies by Year</title>
+</head>
+
+<body>
+
+  <svg id="svg1"></svg>
+
+
+  <script type="text/javascript" src="lib/d3/d3.min.js"></script>
+  <script type="text/javascript" src="lib/d3-dsv/d3-dsv.min.js"></script>
+  <script type="text/javascript" src="lib/d3-fetch/d3-fetch.min.js"></script>
+
+
+  <script>
+    // define the dimensions and margins for the graph
+    var width = 1000;
+    var height = 500;
+    var marginLeft = 80;
+    var marginTop = 20;
+    var padding = 70;
+    var barPadding = 2;
+
+    // define function to parse time in years format
+    var parseTime = d3.timeParse("%Y");
+	
+    // create scales x & y for X and Y axis and set their ranges
+    //  for time series data    start - finish
+    var x = d3.scaleTime().range([padding,  width - padding ]);
+    
+    // for linear data    start - finish
+    var y = d3.scaleLinear().range([height - padding, padding]);
+
+    // append svg element to the body of the page
+    //S VG element used as a container for the visualization
+    var svg = d3.select("body").append("svg")
+	   	// set the id, dimensions and position of the svg element 	
+       .attr("width", width)
+       .attr("height", height);
+
+    // Create Container Group
+    var container = svg.append("g").attr("id", "Container");
+
+    // Get the data
+	  var pathToCsv = "q3.csv";		// path to csv
+	
+    d3.dsv(",", pathToCsv, function (d) {
+      return {
+        // format data attributes if required
+        year: parseTime(d.year),
+        running_total: parseInt(d.running_total)
+      }
+    }).then(function (data) {
+      console.log("d", data); // you should see the data in your browser's developer tools console 
+      
+      /* Create bar plot using data from csv */
+
+      // set the domains of X and Y scales based on data
+      x.domain([
+        d3.min(data, function(d) { return d.year }),
+        d3.max(data, function(d) { return d.year })
+    ]);
+
+      y.domain([
+        0,
+        d3.max(data, function(d) { return d.running_total })
+      ]);
+
+      // Create Bars Group
+      var barsGroup = container.append("g").attr("id", "bars");
+
+      // Add bars to svg - create new elements based on your data
+      barsGroup.selectAll('rect')
+      .data(data)
+      .enter()
+      // For each new data point, append a 'rect' element to represent a bar in the bar chart.
+      .append('rect')
+      .attr('x', function(d) { return x(d.year) })
+      .attr('y', function(d) { return y(d.running_total) })
+      // The width is calculated based on the overall chart width and the number of data points,
+      // minus some padding to separate the bars.
+      .attr('width', function(d) { return width / data.length - barPadding })
+      .attr('height', function(d) { return height - padding - y(d.running_total) })
+      // Set the color of the bars.
+      .attr('fill', 'blue')
+
+
+      // Add the X Axis
+      // Append a group element
+      var xAxis = d3.axisBottom().scale(x);
+      container.append('g')
+        .attr('id', 'x_axis')
+        // Position the X-axis at the bottom of the chart.
+        .attr("transform", "translate(0," + (height - padding) + ")")
+        .call(xAxis);
+
+      // Add the text label for X Axis
+      container.append('text')
+          .attr('id', 'x_axis_label')
+          .attr("text-anchor", "center")
+          // Position the label horizontally.
+          .attr("x", width / 2 - 100)
+          // // Position the label vertically.
+          .attr("y", height - 20)
+          // fill color of the label text
+          .attr("fill", "black")
+          .text("Year");
+
+      // Add the Y Axis
+      var yAxis = d3.axisLeft().scale(y);
+      //Append a group element to 'container' for the Y-axis.
+      container.append('g')
+        .attr('id', 'y_axis')
+        // Position the Y-axis on the left side of the chart.
+        .attr("transform", "translate(" + padding + ",0)")
+        .call(yAxis);
+
+      // Add the text label for Y axis
+      container.append('text')
+              .attr('id', 'y_axis_label')
+              .attr("text-anchor", "end")
+              // Rotate the text label by -90 degrees to align it with the Y-axis.
+              .attr("transform", "rotate(-90)")
+              // Set the x and y coordinates for the label.
+              .attr("x", -200)
+              .attr("y", 20)
+              //text of the label
+              .text("Running Total");
+
+       // Title
+       container.append('text')
+       // Set the x-coordinate for the title.
+              .attr('x', width / 2 - 250)
+      // Set the y-coordinate for the title.
+              .attr('y', 40)
+              .attr('id', 'title')
+      // Set the text of the title.
+              .text('Running Total of TMDb Movies by Year')
+              .attr('font-size', '1.5rem');
+
+      // GT Username
+      container.append('text')
+      // Assign an ID 
+              .attr('id', 'credit')
+              .attr("text-anchor", "end")
+              // Set the x and y coordinates
+              .attr('x', width - 150)
+              .attr('y', height - 25)
+              .attr('fill', 'black')
+              .text('xjiao34')
+
+
+    }).catch(function (error) {
+      console.log(error);
+    });
+
+
+  </script>
+
+</body>
